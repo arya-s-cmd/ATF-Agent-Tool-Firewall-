@@ -136,25 +136,6 @@ ATF runs on port 8000.
 - `GET /audit/logs` : JSON audit events
 - `GET /ui` : simple HTML UI
 
-## Localization hook
-
-`data/malicious_hi.txt` provides a Hindi/Hinglish-style injection example. Extend this folder with more Indic languages and add to `scripts/replay_attacks.py`.
-
-## Repo structure
-
-- `atf_service/` : FastAPI firewall service
-- `agent_demo/` : demo agent that triggers the attack
-- `policies/` : policy YAML
-- `data/` : malicious documents
-- `scripts/` : attack replay harness
-
-## Roadmap ideas (if you have more time)
-
-- Replace naive overlap checks with robust provenance tracking (token-level attribution)
-- Add REQUIRE_CONFIRMATION flow for high-risk actions
-- Add HTTP request tool wrapper and enforce host/path policy
-- Add role-based policies (developer vs analyst, etc.)
-- Add multilingual injection pattern pack and evaluation metrics
 
 ## Security disclaimer
 
