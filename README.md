@@ -78,13 +78,12 @@ A compromised model can fabricate intent. This prototype therefore emphasizes:
 - independent DLP scanning
 - provenance/taint checks that verify whether outbound content overlaps with recently ingested untrusted content
 
-## Decision model
-
+### Decision model
 ATF returns one of:
-- ALLOW
-- ALLOW_WITH_REDACTION
-- REQUIRE_CONFIRMATION
-- BLOCK
+- `ALLOW`
+- `ALLOW_WITH_REDACTION`
+- `REQUIRE_CONFIRMATION`
+- `BLOCK`
 
 This MVP implements ALLOW, ALLOW_WITH_REDACTION, and BLOCK.
 
@@ -93,28 +92,23 @@ This MVP implements ALLOW, ALLOW_WITH_REDACTION, and BLOCK.
 Policy file: `policies/default_policy.yaml`
 
 Key controls:
-- allowed email domains
-- blocked domains
-- allowed URL hosts (optional)
-- DLP configuration and thresholds
+- allowed/blocked **email domains**
+- DLP rules: block vs redact categories
+- taint thresholds (how much overlap with untrusted text triggers block)
 
 Example snippet:
 
 ```yaml
 email:
-  allowed_domains:
-    - org.in
-  blocked_domains:
-    - malicious.com
+  allowed_domains: ["org.in"]
+  blocked_domains: ["malicious.com"]
 
 dlp:
-  block_on:
-    - otp
-    - api_key
-    - jwt
-  redact_on:
-    - phone
-    - email
+  block_on: ["otp", "api_key", "jwt"]
+  redact_on: ["phone", "email"]
+
+taint:
+  max_untrusted_overlap_ratio: 0.20
 ```
 
 ## Provenance and taint
@@ -127,16 +121,47 @@ When the agent proposes a tool call, it includes evidence pointers (chunk IDs) t
 
 If tainted content is about to leave the boundary, ATF blocks or escalates.
 
-## API
+## API (ATF service)
 
 ATF runs on port 8000.
 
-- `POST /tool/ingest` : register content the agent just read
-- `POST /tool/send_email` : validate and (if allowed) execute a simulated email
+- `POST /tool/ingest` : registers content the agent just read (trust zone metadata)
+- `POST /tool/send_email` : enforces destination policy, DLP, and taint checks
 - `GET /audit/logs` : JSON audit events
-- `GET /ui` : simple HTML UI
+- `GET /ui` : minimal audit UI
 
 
-## Security disclaimer
+## Evaluation harness
 
-This is a prototype. The "tool executions" (email send) are simulated; no real emails are sent.
+Run a small attack replay to generate a quick scorecard:
+
+```bash
+docker compose exec agent python /app/scripts/replay_attacks.py
+```
+
+The harness replays multiple injection patterns (including a Hindi/Hinglish sample) and reports how many attempts were blocked vs allowed.
+
+## Localization
+
+The repo includes:
+- `data/malicious_en.txt` (English)
+- `data/malicious_hi.txt` (Hindi/Hinglish-style)
+
+To extend localization:
+1) add more samples in `data/` (e.g., `malicious_ta.txt`, `malicious_bn.txt`)
+2) include them in `scripts/replay_attacks.py`
+3) tune DLP patterns for local formats (phone/ID patterns)
+
+## Productionization notes
+
+This project is intentionally small, but it is structured for real integration:
+- Keep ATF as a **sidecar service** or in-process middleware
+- Replace the demo email stub with your actual email/HTTP/file tools
+- Add `REQUIRE_CONFIRMATION` for high-risk actions
+- Add role-based policies and per-tenant allowlists
+
+## Limitations
+
+This repo is a **reference implementation** focused on demonstrating enforceable guardrails.
+In demo mode, “tool execution” is intentionally stubbed (no real emails are sent).
+For production, swap in your actual tool adapters and keep ATF’s enforcement unchanged.
