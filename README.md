@@ -158,4 +158,4 @@ ATF runs on port 8000.
 
 ## Security disclaimer
 
-This is a prototype for demonstration and hackathon use. The "tool executions" (email send) are simulated; no real emails are sent.
+This is a prototype. The "tool executions" (email send) are simulated; no real emails are sent.
