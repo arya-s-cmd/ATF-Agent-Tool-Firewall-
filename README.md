@@ -85,8 +85,6 @@ ATF returns one of:
 - `REQUIRE_CONFIRMATION`
 - `BLOCK`
 
-This MVP implements ALLOW, ALLOW_WITH_REDACTION, and BLOCK.
-
 ## Policy-as-code
 
 Policy file: `policies/default_policy.yaml`
