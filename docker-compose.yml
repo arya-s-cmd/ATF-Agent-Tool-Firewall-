@@ -1,0 +1,20 @@
+services:
+  atf:
+    build:
+      context: ./atf_service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./policies:/app/policies
+    environment:
+      - ATF_POLICY_PATH=/app/policies/default_policy.yaml
+
+  agent:
+    build:
+      context: ./agent_demo
+    environment:
+      - ATF_URL=http://atf:8000
+    depends_on:
+      - atf
+    # Keep container running for exec usage
+    command: ["bash", "-lc", "sleep infinity"]

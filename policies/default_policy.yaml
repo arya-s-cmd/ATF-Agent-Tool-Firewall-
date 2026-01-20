@@ -1,0 +1,22 @@
+email:
+  allowed_domains:
+    - org.in
+  blocked_domains:
+    - malicious.com
+  require_confirmation_on_untrusted_provenance: true
+
+http:
+  allowed_hosts:
+    - api.org.in
+  blocked_hosts:
+    - evil.example
+
+dlp:
+  block_on:
+    - otp
+    - api_key
+    - jwt
+  redact_on:
+    - phone
+    - email
+  max_untrusted_overlap_ratio: 0.15

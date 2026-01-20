@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ProvenanceGuard ATF - Audit Logs</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 24px; }
+    .row { border: 1px solid #ddd; border-radius: 10px; padding: 12px; margin: 12px 0; }
+    .meta { color: #555; font-size: 12px; }
+    .decision { font-weight: 700; }
+    .block { color: #b00020; }
+    .allow { color: #006400; }
+    pre { white-space: pre-wrap; word-break: break-word; }
+    button { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; background: #f7f7f7; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>ProvenanceGuard ATF</h1>
+  <p class="meta">This is a prototype audit log view. Run the demo agent to generate events.</p>
+  <button id="refresh">Refresh</button>
+  <div id="logs"></div>
+
+<script>
+async function loadLogs() {
+  const res = await fetch('/audit/logs?limit=200');
+  const data = await res.json();
+  const el = document.getElementById('logs');
+  el.innerHTML = '';
+
+  const events = (data.events || []).slice().reverse();
+  for (const ev of events) {
+    const row = document.createElement('div');
+    row.className = 'row';
+
+    const typ = ev.type || 'event';
+    const ts = ev.ts ? new Date(ev.ts * 1000).toISOString() : '';
+    const decision = ev.decision || '';
+    const decisionClass = decision.includes('BLOCK') ? 'block' : 'allow';
+
+    row.innerHTML = `
+      <div class="meta">${ts} | ${typ} | session: ${ev.session_id || ''}</div>
+      ${decision ? `<div class="decision ${decisionClass}">${decision}</div>` : ''}
+      ${ev.reason ? `<div>${ev.reason}</div>` : ''}
+      <details>
+        <summary class="meta">Details</summary>
+        <pre>${JSON.stringify(ev, null, 2)}</pre>
+      </details>
+    `;
+    el.appendChild(row);
+  }
+}
+
+document.getElementById('refresh').addEventListener('click', loadLogs);
+loadLogs();
+setInterval(loadLogs, 2500);
+</script>
+</body>
+</html>
